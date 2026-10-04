@@ -45,8 +45,14 @@ body{background:#061d2b;font-family:Arial,Helvetica,sans-serif}
 #playAgainBtn{background:linear-gradient(180deg,#36d52a,#078f00)}
 @keyframes winnerPop{from{transform:scale(.72);opacity:0}to{transform:scale(1);opacity:1}}
 button{border:0;border-radius:8px;padding:7px 11px;font-weight:800;cursor:pointer}
+#rollArea{display:flex;flex-direction:column;align-items:center;gap:4px}
 #roll{background:#f5bd18;color:#111}#reset{background:#526673;color:#fff}#dice{min-width:25px;text-align:center;font-size:22px;font-weight:900}
-@media(max-width:600px){#ui{gap:4px;padding:5px}button{padding:6px 8px}}
+.dicePicture{width:44px;height:44px;border-radius:9px;background:linear-gradient(145deg,#fff,#dfe5ea);border:2px solid #b7c0c8;box-shadow:0 3px 8px #0007;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:6px;gap:3px;transform:rotate(-2deg);transition:transform .16s ease,filter .16s ease}
+.dicePicture.rolling{animation:diceShake .16s linear infinite}
+.dicePicture .pip{width:8px;height:8px;border-radius:50%;background:#111;justify-self:center;align-self:center;opacity:0}
+.dicePicture.face-1 .pip:nth-child(5),.dicePicture.face-2 .pip:nth-child(1),.dicePicture.face-2 .pip:nth-child(9),.dicePicture.face-3 .pip:nth-child(1),.dicePicture.face-3 .pip:nth-child(5),.dicePicture.face-3 .pip:nth-child(9),.dicePicture.face-4 .pip:nth-child(1),.dicePicture.face-4 .pip:nth-child(3),.dicePicture.face-4 .pip:nth-child(7),.dicePicture.face-4 .pip:nth-child(9),.dicePicture.face-5 .pip:nth-child(1),.dicePicture.face-5 .pip:nth-child(3),.dicePicture.face-5 .pip:nth-child(5),.dicePicture.face-5 .pip:nth-child(7),.dicePicture.face-5 .pip:nth-child(9),.dicePicture.face-6 .pip:nth-child(1),.dicePicture.face-6 .pip:nth-child(3),.dicePicture.face-6 .pip:nth-child(4),.dicePicture.face-6 .pip:nth-child(6),.dicePicture.face-6 .pip:nth-child(7),.dicePicture.face-6 .pip:nth-child(9){opacity:1}
+@keyframes diceShake{0%{transform:rotate(-8deg) scale(.96)}50%{transform:rotate(8deg) scale(1.05)}100%{transform:rotate(-8deg) scale(.96)}}
+@media(max-width:600px){#ui{gap:4px;padding:5px}button{padding:6px 8px}.dicePicture{width:40px;height:40px;padding:5px}.dicePicture .pip{width:7px;height:7px}}
 @media(prefers-reduced-motion:reduce){.piece{animation:none}}
 </style>
 </head>
@@ -58,7 +64,7 @@ button{border:0;border-radius:8px;padding:7px 11px;font-weight:800;cursor:pointe
     <div id="computer" class="piece computer"></div>
   </div>
 </div>
-<div id="ui"><button id="roll">Roll Dice</button><button id="reset">New Game</button><span id="dice">–</span></div>
+<div id="ui"><div id="rollArea"><button id="roll">Roll Dice</button><div id="dicePicture" class="dicePicture" data-value="0" aria-label="Dice has not been rolled yet"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div></div><button id="reset">New Game</button><span id="dice">–</span></div>
 <div id="status">Your turn — Roll Dice</div>
 <div id="score" aria-label="Player scores">
   <span class="scorePlayer"><span class="miniPiece miniPlayer"></span><strong>You</strong>: <b id="youScore">0</b></span>
@@ -83,7 +89,12 @@ const youScoreEl=document.getElementById("youScore"),sawdaScoreEl=document.getEl
 const winnerOverlay=document.getElementById("winnerOverlay"),winnerNameEl=document.getElementById("winnerName");
 const mainPageBtn=document.getElementById("mainPageBtn");
 const playAgainBtn=document.getElementById("playAgainBtn");
-const diceEl=document.getElementById("dice"),rollBtn=document.getElementById("roll"),resetBtn=document.getElementById("reset");
+const diceEl=document.getElementById("dice"),dicePicture=document.getElementById("dicePicture"),rollBtn=document.getElementById("roll"),resetBtn=document.getElementById("reset");
+function showDiceFace(value, rolling=false){
+  dicePicture.className="dicePicture"+(rolling?" rolling":"")+(value>=1&&value<=6?` face-${value}`:"");
+  dicePicture.dataset.value=String(value||0);
+  dicePicture.setAttribute("aria-label", value>=1&&value<=6?`Dice shows ${value}`:"Dice has not been rolled yet");
+}
 let playerPos=0,computerPos=0,busy=false,gameOver=false;
 
 const ladders={6:16,8:41,26:29,50:93,55:80,59:84};
@@ -237,7 +248,7 @@ async function applyJump(who){
 
 async function computerTurn(){
   if(gameOver)return;
-  const d=die();diceEl.textContent=d;statusEl.textContent=`Sawda rolled ${d}`;
+  const d=die();showDiceFace(d);diceEl.textContent=d;statusEl.textContent=`Sawda rolled ${d}`;
   const old=computerPos;
   if(computerPos===0){
     if(d===1)computerPos=1;
@@ -268,7 +279,7 @@ function declareWinner(name){
 async function playerTurn(){
   if(busy||gameOver)return;
   busy=true;rollBtn.disabled=true;
-  const d=die();diceEl.textContent=d;statusEl.textContent=`You rolled ${d}`;
+  showDiceFace(0,true);await sleep(220);const d=die();showDiceFace(d);diceEl.textContent=d;statusEl.textContent=`You rolled ${d}`;
   const old=playerPos;
   if(playerPos===0){
     if(d===1)playerPos=1;
@@ -290,7 +301,7 @@ async function playerTurn(){
 
 function reset(){
   winnerOverlay.hidden=true;
-  playerPos=0;computerPos=0;busy=false;gameOver=false;diceEl.textContent="–";
+  playerPos=0;computerPos=0;busy=false;gameOver=false;diceEl.textContent="–";showDiceFace(0);
   // Both pieces start outside the numbered board. Score is 0.
   // They enter square 1 only after their own first roll is exactly 1.
   movePiece(playerEl,0);movePiece(computerEl,0);

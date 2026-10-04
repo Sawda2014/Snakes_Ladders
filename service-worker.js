@@ -1,4 +1,4 @@
-const CACHE = "snakes-ladders-sawda-v1";
+const CACHE = "snakes-ladders-sawda-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", event => {
