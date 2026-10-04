@@ -1,0 +1,19 @@
+{
+  "name": "Snakes & Ladders — Sawda",
+  "short_name": "Snakes & Ladders",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#061d2b",
+  "theme_color": "#061d2b",
+  "description": "Snakes & Ladders game with Sawda.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
